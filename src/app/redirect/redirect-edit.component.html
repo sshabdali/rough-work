@@ -1,0 +1,50 @@
+<div class="modal fade" bsModal #staticModal="bs-modal" [config]="{backdrop: 'static'}" tabindex="-1" role="dialog" aria-hidden="true">
+  <div class="modal-dialog  modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h4 class="modal-title pull-left">Setup URL Redirect</h4>
+        <button type="button" class="close pull-right" aria-label="Close" (click)="staticModal.hide()">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+
+        <form *ngIf="data" #redirectForm="ngForm" (ngSubmit)="saveRedirect(redirectForm.value)" autocomplete="off" novalidate>
+          <div class="form-group">
+            <input [(ngModel)]="data.redirectId" name="redirectId" required id="redirectId" type="text" class="form-control" />
+          </div>
+
+          <div class="form-group" [ngClass]="{'error': redirectForm.controls.source?.invalid && redirectForm.controls.source?.touched}">
+            <label for="redirectName">Source URL:</label>
+            <em *ngIf="redirectForm.controls.source?.invalid && (redirectForm.controls.source?.touched || mouseoverSubmit)">Required</em>
+            <input [(ngModel)]="data.source" name="source" required id="source" type="text" class="form-control" placeholder="Enter Source URL..."
+            />
+          </div>
+
+          <div class="form-group" [ngClass]="{'error': redirectForm.controls.destination?.invalid && redirectForm.controls.destination?.touched}">
+            <label for="redirectName">Destination URL:</label>
+            <em *ngIf="redirectForm.controls.destination?.invalid && (redirectForm.controls.destination?.touched || mouseoverSubmit)">Required</em>
+            <input [(ngModel)]="data.destination" name="destination" required id="destination" type="text" class="form-control" placeholder="Enter Source URL..."
+            />
+          </div>
+
+          <div class="form-group" [ngClass]="{'error': redirectForm.controls.expiry?.invalid && redirectForm.controls.expiry?.touched}">
+            <label for="redirectName">Destination URL:</label>
+            <em *ngIf="redirectForm.controls.expiry?.invalid && (redirectForm.controls.expiry?.touched || mouseoverSubmit)">Required</em>
+            <input [(ngModel)]="data.expiry" name="expiry" required id="expiry" type="text" class="form-control" (focus)="showDatePicker = true"/>
+            <div *ngIf="showDatePicker" style="position: absolute; z-index:10; min-height:290px;">
+              <datepicker [(ngModel)]="data.expiry" [ngModelOptions]="{standalone: true}" [minDate]="minDate" [showWeeks]="true" (click)="showDatePicker = false"></datepicker>
+            </div>
+          </div>
+
+          <span (mouseenter)="mouseoverSubmit=true" (mouseleave)="mouseoverSubmit=false">
+              <button type="submit" [disabled]="redirectForm.invalid" class="btn btn-primary">Save</button>
+          </span>
+
+          <button type="button" class="btn btn-default" (click)="cancel()">Cancel</button>
+        </form>
+
+      </div>
+    </div>
+  </div>
+</div>
