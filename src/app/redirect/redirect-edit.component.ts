@@ -1,48 +1,52 @@
-import { Component, OnChanges, ViewChild, Input, ChangeDetectionStrategy } from '@angular/core';
+import { Component, ViewChild, Input, ChangeDetectionStrategy } from '@angular/core';
 import { Redirect } from "app/model/Redirect";
 import { RedirectService } from "app/services/redirect.service";
+import { NgForm } from "@angular/forms/forms";
 
 @Component({
   selector: 'redirect-edit',
   templateUrl: './redirect-edit.component.html',
   styleUrls: ['./redirect-edit.component.css']
 })
-export class RedirectEditComponent implements OnChanges {
+export class RedirectEditComponent {
 
-  @Input() redirectId = 0;
-  @ViewChild('staticModal') modalForm;
-
+  redirectId = 0;
+  @ViewChild('editModal') editModal;
   data: Redirect;
 
   constructor(private redirectService: RedirectService) {
   }
 
-  ngOnChanges() {
+  showModal(redirectId: number) {
+    this.redirectId = redirectId
+    this.editModal.show();
+  }
+
+  public handler(id) {
     if (this.redirectId) {
-      this.data = this.redirectService.getRedirect(this.redirectId);
+      this.data = { ...this.redirectService.getRedirect(this.redirectId) };
     }
     else {
-      this.data = {
-        "redirectId": 0,
-        "redirectCount": 0,
-        "source": "",
-        "destination": "",
-        "expiry": "",
-        "lastSeen": ""
-      }
+      this.data = this.redirectService.newObject();
     }
   }
 
-  showModal(modalBody: string) {
-    this.modalForm.show();
+  get expiryDate(): string {
+    if (!this.data.expiry) {
+      return "";
+    }
+    var date = new Date(<any>this.data.expiry);
+    return date.toDateString().slice(4);
   }
 
-  saveRedirect(formValues) {
-    this.redirectService.saveRedirect(formValues);
-    this.modalForm.hide();
+  saveRedirect(form: NgForm) {
+    this.redirectService.saveRedirect(form.value);
+    form.resetForm();
+    this.editModal.hide();
   }
 
-  cancel() {
-    this.modalForm.hide();
+  cancel(form: NgForm) {
+    form.resetForm();
+    this.editModal.hide();
   }
 }

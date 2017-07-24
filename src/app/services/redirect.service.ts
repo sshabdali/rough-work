@@ -22,6 +22,18 @@ export class RedirectService {
         return REDIRECTS.find(redirect => redirect.redirectId === id)
     }
 
+    newObject(): Redirect {
+        return {
+            "redirectId": 0,
+            "redirectCount": 0,
+            "source": "",
+            "destination": "",
+            "expiry": "",
+            "lastSeen": ""
+        }
+    }
+
+
     saveRedirect(redirect: Redirect) {
         redirect.redirectId = 999
         REDIRECTS.push(redirect)
@@ -38,7 +50,7 @@ const REDIRECTS: Redirect[] = [
         "redirectCount": 186,
         "source": "http://www.game.co.uk/en/hardware/playstation-4-ps4-consoles/playstation-4-ps4-500gb-consoles",
         "destination": "http://www.game.co.uk/en/hardware/preowned-hardware/playstation/playstation-4",
-        "expiry": "2012-04-23T18:25:43.511Z",
+        "expiry": "2017-10-05T18:25:43.511Z",
         "lastSeen": "01 Jan 2017"
     },
     {
@@ -46,7 +58,7 @@ const REDIRECTS: Redirect[] = [
         "redirectCount": 327,
         "source": "http://www.game.co.uk/webapp/wcs/stores/servlet/HubArticleView?hubId=2017253&articleId=2017254",
         "destination": "http://www.game.co.uk/en/games/xbox-one-games/?inStockOnly=false&merchname=TopNav",
-        "expiry": "2012-04-23T18:25:43.511Z",
+        "expiry": "2017-11-15T18:25:43.511Z",
         "lastSeen": "12 Feb 2017"
     },
     {
@@ -54,7 +66,7 @@ const REDIRECTS: Redirect[] = [
         "redirectCount": 280,
         "source": "http://www.game.co.uk/en/hardware/nintendo-3ds-3ds-xl-and-2ds-consoles",
         "destination": "http://www.game.co.uk/en/games/games-out-now/games-out-now-on-nintendo-switch?merchname=TopNav-_-Nintendo_Games-_-GamesOutNow",
-        "expiry": "2012-04-23T18:25:43.511Z",
+        "expiry": "2017-12-20T18:25:43.511Z",
         "lastSeen": "21 Mar 2017"
     }
 ]

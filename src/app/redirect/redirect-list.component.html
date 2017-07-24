@@ -1,4 +1,4 @@
-<a (click)="editRow(0)" class="btn btn-success">Add New</a>
+<a (click)="showEditModel(0)" class="btn btn-success">Add New</a>
 
 <div class='redirects table-responsive'>
   <table class='table'>
@@ -15,20 +15,24 @@
     <tbody>
       <tr *ngFor='let redirect of (redirects$ | async)'>
         <td>{{ redirect.redirectCount }}</td>
-        <td class="column-url">{{ redirect.source }}</td>
-        <td class="column-url">{{ redirect.destination }}</td>
-        <td>{{ redirect.expiry }}</td>
-        <td>{{ redirect.lastSeen }}</td>
-        <td>
-          <a (click)="editRow(redirect.redirectId)" class="btn btn-primary">EDIT</a>
-          <a (click)="showDeleteModel(redirect.redirectId)" class="btn btn-danger">DELETE</a>
+        <td>{{ redirect.source }}</td>
+        <td>{{ redirect.destination }}</td>
+        <td class="fixed-column">{{ redirect.expiry | date:'dd MMM yyyy' }}</td>
+        <td class="fixed-column">{{ redirect.lastSeen }}</td>
+        <td class="fixed-column">
+          <a (click)="showEditModel(redirect.redirectId)" class="btn btn-primary">
+            <i class="fa fa-pencil" aria-hidden="true"></i>
+          </a>
+          <a (click)="showDeleteModel(redirect.redirectId)" class="btn btn-danger">
+            <i class="fa fa-trash" aria-hidden="true"></i>    
+          </a>
         </td>
       </tr>
     </tbody>
   </table>
 </div>
 
-<redirect-edit [redirectId]="selectedRedirectId" #modalForm></redirect-edit>
+<redirect-edit #formModal></redirect-edit>
 
 <div bsModal #confirmModal="bs-modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
   <div class="modal-dialog">

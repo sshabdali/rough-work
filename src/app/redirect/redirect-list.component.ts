@@ -11,25 +11,21 @@ import { Observable } from "rxjs/Observable";
 })
 export class RedirectListComponent implements OnInit {
 
-  @ViewChild('modalForm') modal;
+  @ViewChild('formModal') form;
   @ViewChild('confirmModal') confirm;
 
-  selectedRedirectId = 0;
   idToDelete = 0;
-  pageTitle: string;
   redirects$: Observable<Redirect[]>;
 
   constructor(private redirectService: RedirectService) {
-    this.pageTitle = 'Redirect Urls';
   }
 
   ngOnInit(): void {
     this.redirects$ = this.redirectService.getRedirects();
   }
 
-  editRow(redirectId: number) {
-    this.selectedRedirectId = redirectId;
-    this.modal.showModal();
+  showEditModel(redirectId: number) {
+    this.form.showModal(redirectId);
   }
 
   showDeleteModel(idToDelete: number) {
