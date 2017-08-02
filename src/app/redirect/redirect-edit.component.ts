@@ -1,52 +1,72 @@
-import { Component, ViewChild, Input, ChangeDetectionStrategy } from '@angular/core';
-import { Redirect } from "app/model/Redirect";
+import { Component, ViewChild, Input } from '@angular/core';
 import { RedirectService } from "app/services/redirect.service";
 import { NgForm } from "@angular/forms/forms";
+import { Redirect } from "model/Redirect";
+import { Observable } from "rxjs/Observable";
 
 @Component({
-  selector: 'redirect-edit',
   templateUrl: './redirect-edit.component.html',
   styleUrls: ['./redirect-edit.component.css']
 })
 export class RedirectEditComponent {
 
-  redirectId = 0;
-  @ViewChild('editModal') editModal;
-  data: Redirect;
+  @Input() options: any;
+  @Input() modalRef: any;
 
+  redirectId = "";
+  dateToDisplay = "";
+  errorMessage = "";
+  showDatePicker = false;
+  isAddNewMode = false;
+
+  data: Redirect;
+  
   constructor(private redirectService: RedirectService) {
   }
 
-  showModal(redirectId: number) {
-    this.redirectId = redirectId
-    this.editModal.show();
-  }
+  ngOnInit(): void {
+    this.errorMessage = "";
+    this.redirectId = this.options.id;
 
-  public handler(id) {
     if (this.redirectId) {
-      this.data = { ...this.redirectService.getRedirect(this.redirectId) };
+      this.redirectService.get(this.redirectId)
+        .subscribe(result => {
+          this.data = result;
+          this.dateToDisplay = this.data.expiry
+          this.isAddNewMode = false
+        });
     }
     else {
       this.data = this.redirectService.newObject();
+      this.isAddNewMode = true
     }
-  }
-
-  get expiryDate(): string {
-    if (!this.data.expiry) {
-      return "";
-    }
-    var date = new Date(<any>this.data.expiry);
-    return date.toDateString().slice(4);
   }
 
   saveRedirect(form: NgForm) {
-    this.redirectService.saveRedirect(form.value);
-    form.resetForm();
-    this.editModal.hide();
+
+    if (this.isAddNewMode) {
+      this.redirectService.create(form.value)
+        .subscribe(response => {
+          this.redirectService.load(1, '', '');
+          form.resetForm();
+          this.modalRef.hide();
+        }, err => this.errorMessage = err.json().error);
+
+    } else {
+      this.redirectService.update(form.value);
+      form.resetForm();
+      this.modalRef.hide();
+    }
+    
   }
 
   cancel(form: NgForm) {
     form.resetForm();
-    this.editModal.hide();
+    this.modalRef.hide();
+  }
+
+  onExpirySelection(data) {
+    this.showDatePicker = false;
+    this.dateToDisplay = new Date(<any>data).toDateString().slice(4);
   }
 }

@@ -1,7 +1,19 @@
-.fixed-column{
-    width: 100px;
+.fixed-date-column{
+    width: 110px;
+}
+
+.fixed-button-column{
+    width: 138px;
 }
 
 .redirects {
     height: 100%;
+}
+
+.redirects table thead tr{
+    height: 50px;
+}
+
+.redirects th.clickable{
+    cursor: pointer;
 }

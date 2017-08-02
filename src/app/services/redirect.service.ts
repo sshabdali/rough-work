@@ -1,72 +1,122 @@
 import { Injectable } from '@angular/core';
+import { Http, Headers, RequestOptions } from '@angular/http';
 import { Observable } from 'rxjs/Observable';
-import { Subject } from "rxjs/Subject";
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
+import { Redirect } from "model/Redirect";
 
-import { Redirect } from "../model/Redirect";
-
-import 'rxjs/add/operator/catch';
-import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/map';
-
 
 @Injectable()
 export class RedirectService {
 
-    getRedirects(): Observable<Redirect[]> {
-        let subject = new Subject<Redirect[]>()
-        setTimeout(() => { subject.next(REDIRECTS); subject.complete(); }, 100)
-        return subject
+    private store: {
+        redirects: Redirect[]
+    };
+    private baseUrl: string;
+
+    private totalItemsSubject: BehaviorSubject<number>;
+    public totalItems$: Observable<number>
+
+    private pageLabelSubject: BehaviorSubject<string>;
+    public pageLabel$: Observable<string>
+
+    private redirectSubject: BehaviorSubject<Redirect[]>;
+    public redirects$: Observable<Redirect[]>
+
+    constructor(private http: Http) {
+        this.baseUrl = 'http://localhost:8090/api/redirects';
+        this.store = { redirects: [] };
+
+        this.totalItemsSubject = <BehaviorSubject<number>>new BehaviorSubject(0);
+        this.totalItems$ = this.totalItemsSubject.asObservable();
+
+        this.pageLabelSubject = <BehaviorSubject<string>>new BehaviorSubject("");
+        this.pageLabel$ = this.pageLabelSubject.asObservable();
+
+        this.redirectSubject = <BehaviorSubject<Redirect[]>>new BehaviorSubject([]);
+        this.redirects$ = this.redirectSubject.asObservable();
     }
 
-    getRedirect(id: number): Redirect {
-        return REDIRECTS.find(redirect => redirect.redirectId === id)
+    load(pageNo: number, sortKey: string, sortOrder: string) {
+
+        const params = {
+            pageNumber: pageNo,
+            pageSize: 10,
+            sortKey: sortKey,
+            sortOrder: sortOrder
+        }
+
+        this.http.get(this.baseUrl, { params })
+            .map(response => response.json())
+            .subscribe(data => {
+                this.store.redirects = data.redirects;
+
+                this.redirectSubject.next(Object.assign({}, this.store).redirects);
+                this.totalItemsSubject.next(data.totalItems);
+
+                const recordsFrom = ((params.pageNumber - 1) * params.pageSize) + 1;
+                const recordsTo = (recordsFrom + params.pageSize) - 1;
+                const message = `from: ${recordsFrom} to ${recordsTo < data.totalItems ? recordsTo : data.totalItems} of ${data.totalItems} records`
+                this.pageLabelSubject.next(message);
+
+            }, error => console.log('Could not load redirects.'));
+    }
+
+    get(id: string): Observable<Redirect> {
+
+        const params = { id: id }
+
+        return this.http.get(this.baseUrl + `/fetch`, { params })
+            .map(res => res.json());
+    }
+
+    create(redirect: Redirect): Observable<any> {
+        return this.http.post(this.baseUrl, redirect);
+    }
+
+    remove(id: string): Observable<any> {
+        const params = { id: id }
+        return this.http.delete(this.baseUrl, { params });
+    }    
+
+    update(redirect: Redirect) {
+
+        const params = { id: redirect.source }
+
+        this.http.put(this.baseUrl, redirect, { params })
+            .map(response => response.json())
+            .subscribe(data => {
+                this.store.redirects.forEach((t, i) => {
+                    if (t.source == data.source) { this.store.redirects[i] = data; }
+                });
+
+                this.redirectSubject.next(Object.assign({}, this.store).redirects);
+            }, error => console.log('Could not update redirect.'));
+    }
+
+    reset(id: string) {
+
+        const params = { id: id }
+
+        this.http.put(this.baseUrl + `/reset`, null, { params })
+            .map(response => response.json())
+            .subscribe(data => {
+                this.store.redirects.forEach((t, i) => {
+                    if (t.source == data.source) { this.store.redirects[i] = data; }
+                });
+
+                this.redirectSubject.next(Object.assign({}, this.store).redirects);
+            }, error => console.log('Could not delete redirect.'));
     }
 
     newObject(): Redirect {
         return {
-            "redirectId": 0,
-            "redirectCount": 0,
+            "id": "",
+            "count": 0,
             "source": "",
             "destination": "",
             "expiry": "",
             "lastSeen": ""
         }
     }
-
-
-    saveRedirect(redirect: Redirect) {
-        redirect.redirectId = 999
-        REDIRECTS.push(redirect)
-    }
-
-    deleteRedirect(id: number) {
-        window.alert('removed ' + id);
-    }
 }
-
-const REDIRECTS: Redirect[] = [
-    {
-        "redirectId": 2,
-        "redirectCount": 186,
-        "source": "http://www.game.co.uk/en/hardware/playstation-4-ps4-consoles/playstation-4-ps4-500gb-consoles",
-        "destination": "http://www.game.co.uk/en/hardware/preowned-hardware/playstation/playstation-4",
-        "expiry": "2017-10-05T18:25:43.511Z",
-        "lastSeen": "01 Jan 2017"
-    },
-    {
-        "redirectId": 3,
-        "redirectCount": 327,
-        "source": "http://www.game.co.uk/webapp/wcs/stores/servlet/HubArticleView?hubId=2017253&articleId=2017254",
-        "destination": "http://www.game.co.uk/en/games/xbox-one-games/?inStockOnly=false&merchname=TopNav",
-        "expiry": "2017-11-15T18:25:43.511Z",
-        "lastSeen": "12 Feb 2017"
-    },
-    {
-        "redirectId": 4,
-        "redirectCount": 280,
-        "source": "http://www.game.co.uk/en/hardware/nintendo-3ds-3ds-xl-and-2ds-consoles",
-        "destination": "http://www.game.co.uk/en/games/games-out-now/games-out-now-on-nintendo-switch?merchname=TopNav-_-Nintendo_Games-_-GamesOutNow",
-        "expiry": "2017-12-20T18:25:43.511Z",
-        "lastSeen": "21 Mar 2017"
-    }
-]

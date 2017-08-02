@@ -1,7 +1,9 @@
 import { Component, OnInit, ViewChild } from '@angular/core';
-import { Redirect } from "../model/Redirect";
 import { RedirectService } from "../services/redirect.service";
 import { Observable } from "rxjs/Observable";
+import { Redirect } from "model/Redirect";
+import { DialogService } from "../common/dialog.service";
+import { RedirectEditComponent } from "./redirect-edit.component";
 
 
 @Component({
@@ -11,34 +13,72 @@ import { Observable } from "rxjs/Observable";
 })
 export class RedirectListComponent implements OnInit {
 
-  @ViewChild('formModal') form;
-  @ViewChild('confirmModal') confirm;
+  public currentPage: number = 1;
 
-  idToDelete = 0;
+  sortKey = "";
+  sortOrder = "";
   redirects$: Observable<Redirect[]>;
+  totalItems$: Observable<number>;
+  pageLabel$: Observable<string>;
 
-  constructor(private redirectService: RedirectService) {
+  constructor(private redirectService: RedirectService, private dialogService: DialogService) {
   }
 
   ngOnInit(): void {
-    this.redirects$ = this.redirectService.getRedirects();
+    this.loadPage(1);
+    this.redirects$ = this.redirectService.redirects$;
+    this.totalItems$ = this.redirectService.totalItems$;
+    this.pageLabel$ = this.redirectService.pageLabel$;
   }
 
-  showEditModel(redirectId: number) {
-    this.form.showModal(redirectId);
+  showEditModel(id: string) {
+
+    this.dialogService.showModal({
+      component: RedirectEditComponent,
+      data: { id: id }
+    })
+
   }
 
-  showDeleteModel(idToDelete: number) {
-    this.idToDelete = idToDelete;
-    this.confirm.show();
+  showDeleteModel(id: string) {
+
+    this.dialogService.showConfirm("Delete confirmation", "Are you sure you want to delete this record?", "Delete", "Cancel", "btn-danger")
+      .then(res => {
+        if (res) {
+          this.redirectService.remove(id).subscribe(response => {
+            this.loadPage(this.currentPage);
+          });
+        }
+      });
+
   }
 
-  deleteRow(id: number) {
-    this.redirectService.deleteRedirect(id);
-    this.confirm.hide();
+  showResetModel(id: string) {
+
+    this.dialogService.showConfirm("Confirm Reset Count", "Are you sure you want to reset the redirect count?", "Reset", "Cancel", "btn-warning")
+      .then(res => {
+        if (res) {
+          this.redirectService.reset(id);
+        }
+      });
   }
 
-  cancelDelete() {
-    this.confirm.hide();
+  sortby(key: string) {
+    if (this.sortKey != key) {
+      this.sortOrder = 'DESC'
+    }
+    else {
+      this.sortOrder = this.sortOrder == 'ASC' ? 'DESC' : 'ASC'
+    }
+    this.sortKey = key;
+    this.loadPage(this.currentPage);
+  }
+
+  loadPage(pageNo: number) {
+    this.redirectService.load(pageNo, this.sortKey, this.sortOrder);
+  }
+
+  public pageChanged(event: any): void {
+    this.loadPage(event.page);
   }
 }
